@@ -32,3 +32,41 @@ application { //Allows  ./gradlew run --args=path-to-test-data
     mainClass = 'edu.odu.cs.MostCommonWords'
 }
 
+
+tasks.register('copyReportHtml', Copy) {
+    from 'src/main/html'
+    into layout.buildDirectory.dir('reports')
+}
+
+tasks.register('copyReportDocs', Copy) {
+    dependsOn tasks.named('javadoc')
+    from layout.buildDirectory.dir('docs')
+    into layout.buildDirectory.dir('reports')
+}
+
+tasks.register('reports') {
+    dependsOn tasks.named('build')
+    dependsOn tasks.named('javadoc')
+    dependsOn tasks.named('copyReportHtml')
+    dependsOn tasks.named('copyReportDocs')
+}
+
+gitPublish {
+    repoUri = 'git@github.com:ODU-CS351-F26/CS351--exercise-documentation--Drush002.git'
+    branch = 'gh-pages'
+
+    contents {
+        from layout.buildDirectory.dir('reports')
+    }
+
+    commitMessage = 'Publish project reports'
+}
+
+tasks.named('gitPublishCopy') {
+    dependsOn tasks.named('reports')
+}
+
+tasks.register('deployReports') {
+    dependsOn tasks.named('reports')
+    dependsOn tasks.named('gitPublishPush')
+}
